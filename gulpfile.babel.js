@@ -9,6 +9,11 @@ import imagemin from 'gulp-imagemin';
 import del from 'del';
 import webpack from 'webpack-stream';
 import named from 'vinyl-named';
+import browserSync from 'browser-sync';
+import zip from 'gulp-zip'
+import replace from 'gulp-replace'
+import info from 'package.json'
+const server = browserSync.create();
 //genera una bandera con el ultimo
 const PRODUCTION = yargs.argv.prod;
 const paths = {
@@ -22,6 +27,11 @@ const paths = {
   },
   //para compiar los archivos a la carpeta final, las direcciones despues de la primera
   //es para excluir a los archivos en esos lugares
+
+  scripts: {
+    src: ['src/asses/js/**/*'],
+    dest: 'dist/asses'
+  },
   other: {
     src: [
       'src/asses/**/*',
@@ -29,12 +39,23 @@ const paths = {
       '!src/asses/{images,js,scss}/**/*'
     ],
     dest: 'dist/asses'
-  },
-  scripts: {
-    src: ['src/asses/js/**/*'],
-    dest: 'dist/asses'
-  }
+},
+package:{
+  src:['**/*','!.vscode','"node_modules{,**}','!packaged{,**}','!src{,/**}','!.babelrc','!.gitignore','!gulpfile.babel.js','!package.json','!yarn.lock'],
+  dest:"packaged"
+}
+}
+
+export const serve = done => {
+  server.init({
+    proxy: 'http://localhost:8080'
+  });
+  done()
 };
+export const reload (done){
+  server.reload();
+  done()
+}
 //para evitar la creacion de carpetas innesesarias
 export const clean = () => {
   return del(['dist']);
@@ -51,6 +72,7 @@ export const styles = done => {
       .pipe(gulpif(PRODUCTION, cleanCSS({ compatibility: 'ie8' })))
       .pipe(gulpif(!PRODUCTION, sourcemaps.write()))
       .pipe(gulp.dest(paths.styles.dest))
+      .pipe(server.stream())
   );
 };
 
@@ -96,15 +118,18 @@ export const watch = () => {
   /** = todos los archivos detectados con la extension */
   /* El segundo argumento es para entregar que tarea se realizara cuando cambien estos archivos*/
   gulp.watch(paths.other.src, styles);
-  gulp.watch(paths.scripts.src), scripts;
-  gulp.watch(paths.images.src, images);
+  gulp.watch(paths.scripts.src), gulp.series(scripts,reload);
+  gulp.watch('**/*.php'),reload;
+  gulp.watch(paths.images.src, gulp.series(images,reload));
   gulp.watch(paths.other.src, copy);
 };
 
 export const copy = () => {
   return gulp.src(paths.other.src).pipe(gulp.dest(paths.other.dest));
 };
-
+export const compress = () =>{
+  return gulp.src(paths.package.src).pipe(replace('_themename',info.named)).pipe( zip(`${info.named}.zip`)).pipe(gulp.dest(paths.package.dest))
+}
 export const dev = gulp.series(
   clean,
   gulp.parallel(styles, scripts, images, copy),
@@ -116,6 +141,8 @@ export const build = gulp.series(
   clean,
   gulp.parallel(styles, scripts, images, copy)
 );
+
+export const bundle = gulp.series(build,compress);
 /*-------------Estilos-----------------*/
 // yargs => añadir argumentos para produccion -yarg
 //gulp --prod=saodkasodmas
