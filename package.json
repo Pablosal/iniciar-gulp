@@ -1,0 +1,32 @@
+{
+  "name": "SetGulp",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "babel-loader": "^8.0.6",
+    "del": "^5.0.0",
+    "gulp": "^4.0.2",
+    "gulp-autoprefixer": "^6.1.0",
+    "gulp-clean-css": "^4.2.0",
+    "gulp-if": "^3.0.0",
+    "gulp-imagemin": "^6.0.0",
+    "gulp-sass": "^4.0.2",
+    "gulp-sourcemaps": "^2.6.5",
+    "webpack-stream": "^5.2.1",
+    "yargs": "^13.3.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
+    "@babel/register": "^7.5.5",
+    "vinyl-named": "^1.1.0"
+  },
+  "browserslist": [
+    "defaults"
+  ],
+  "scripts": {
+    "start": "gulp",
+    "build": "gulp build --prod"
+  }
+}
